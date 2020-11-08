@@ -30,18 +30,20 @@ class HexAgent extends Agent {
         }
 
         
-        if(this.getID() === "1"){
-            return this.getBestMovement(board)
+        if(this.getID() === "2"){
+            return this.getBestMovement(board, "2")
+        }else{
+            return this.getBestMovement(board, "1")
         }
         
 
 
-        let move = available[Math.round(Math.random() * (available.length - 1))];
-        return [Math.floor(move / board.length), move % board.length];
+        //let move = available[Math.round(Math.random() * (available.length - 1))];
+        //return [Math.floor(move / board.length), move % board.length];
     }
 
 
-    getNeighbors(position, board){
+    getNeighbors(position, board, player){
 
         let neighbors = [];
 
@@ -53,22 +55,40 @@ class HexAgent extends Agent {
         let neighborDownLeft = new Hex(position.row + 1, position.col - 1)
 
         
-
-        if(position.isStartLeft){
-            for(let i = 0; i < board.length; i++){
-                let hexNeighbor = new Hex(i, 0);
-                hexNeighbor.setMark(board[i][0]);
-                neighbors.push(hexNeighbor)
+        if(player === "1"){
+            if(position.isStartLeft){
+                for(let i = 0; i < board.length; i++){
+                    let hexNeighbor = new Hex(i, 0);
+                    hexNeighbor.setMark(board[i][0]);
+                    neighbors.push(hexNeighbor)
+                }
+                return neighbors
+            }else if(position.isFinishRight){
+                for(let i = 0; i < board.length; i++){
+                    let hexNeighbor = new Hex(i, board.length - 1);
+                    hexNeighbor.setMark(board[i][board.length - 1]);
+                    neighbors.push(hexNeighbor)
+                }
+                return neighbors
             }
-            return neighbors
-        }else if(position.isFinishRight){
-            for(let i = 0; i < board.length; i++){
-                let hexNeighbor = new Hex(i, board.length - 1);
-                hexNeighbor.setMark(board[i][board.length - 1]);
-                neighbors.push(hexNeighbor)
+        }else if(player === "2"){
+            if(position.isStartLeft){
+                for(let i = 0; i < board.length; i++){
+                    let hexNeighbor = new Hex(0, i);
+                    hexNeighbor.setMark(board[0][i]);
+                    neighbors.push(hexNeighbor)
+                }
+                return neighbors
+            }else if(position.isFinishRight){
+                for(let i = 0; i < board.length; i++){
+                    let hexNeighbor = new Hex(board.length - 1, i);
+                    hexNeighbor.setMark(board[board.length - 1][i]);
+                    neighbors.push(hexNeighbor)
+                }
+                return neighbors
             }
-            return neighbors
         }
+        
 
         neighbors = [neighborUp, neighborDown, neighborLeft, neighborRight, neighborUpRight, neighborDownLeft]  
 
@@ -78,30 +98,46 @@ class HexAgent extends Agent {
             return hex
          })
 
-
-         if(position.col === 0){
-             let startHex = new Hex(-1, -1, true, false);
-             neighborsFilter.push(startHex);
-         }else if(position.col === 6){
-            let finalHex = new Hex(-2, -2, false, true);
-            neighborsFilter.push(finalHex);
+         if(player === "1"){
+            if(position.col === 0){
+                let startHex = new Hex(-1, -1, true, false);
+                neighborsFilter.push(startHex);
+            }else if(position.col === 6){
+               let finalHex = new Hex(-2, -2, false, true);
+               neighborsFilter.push(finalHex);
+            }
+         }else if(player === "2"){
+            if(position.row === 0){
+                let startHex = new Hex(-1, -1, true, false);
+                neighborsFilter.push(startHex);
+            }else if(position.row === 6){
+               let finalHex = new Hex(-2, -2, false, true);
+               neighborsFilter.push(finalHex);
+            }
          }
+         
 
          return neighborsFilter
     }
 
-    createMap(neighborsNode){
+    createMap(neighborsNode, player){
         let mapNeighbors = {}
 
         for(let i = 0; i < neighborsNode.length; i++){
             let arrayName = [neighborsNode[i].row, neighborsNode[i].col]
             let weight;
 
-            if(neighborsNode[i].mark === "1"){
+            if(neighborsNode[i].mark === "1" && player === "1"){
                 weight = 1;
-            }else if(neighborsNode[i].mark === "2"){
+            }else if(neighborsNode[i].mark === "1" && player === "2"){
+                weight = Infinity
+            }
+            else if(neighborsNode[i].mark === "2" && player === "2"){
+                weight = 1;
+            }else if(neighborsNode[i].mark === "2" && player === "1"){
                 weight = Infinity;
-            }else if(neighborsNode[i].isStartLeft || neighborsNode[i].isFinishRight){
+            }
+            else if(neighborsNode[i].isStartLeft || neighborsNode[i].isFinishRight){
                 weight = 1;
             }
             else if(neighborsNode[i].mark === 0) {
@@ -114,22 +150,23 @@ class HexAgent extends Agent {
         return mapNeighbors;
     }
 
-    getShortestPath(board){
+    getShortestPath(board, player){
 
         const graph = new Graph();
 
         //Se agregan los nodos terminales
         let startHex = new Hex(-1, -1, true, false);
-        graph.addNode([startHex.row,startHex.col].toString(),this.createMap(this.getNeighbors(startHex, board)))
+        graph.addNode([startHex.row,startHex.col].toString(),this.createMap(this.getNeighbors(startHex, board,player), player))
         let finalHex = new Hex(-2, -2, false, true);
-        graph.addNode([finalHex.row,finalHex.col].toString(),this.createMap(this.getNeighbors(finalHex, board)))
+        graph.addNode([finalHex.row,finalHex.col].toString(),this.createMap(this.getNeighbors(finalHex, board, player), player))
+        
 
 
         for(let i = 0; i < board.length; i++){
             for(let j = 0; j < board.length; j++){
                 let hexNode = new Hex(i, j);
                 hexNode.setMark(board[i][j])
-                let mapNeighbors = this.createMap(this.getNeighbors(hexNode, board))
+                let mapNeighbors = this.createMap(this.getNeighbors(hexNode, board, player), player)
                 graph.addNode([hexNode.row,hexNode.col].toString(),mapNeighbors)
             }
         }
@@ -140,7 +177,7 @@ class HexAgent extends Agent {
     minmax(board, isMax, deep, alpha, beta, player){
 
         if(deep === 0){
-            return this.transformHeuristicValue(this.getShortestPath(board).cost);
+            return this.transformHeuristicValue(this.getShortestPath(board, player).cost);
         }
 
         if(isMax){
@@ -148,8 +185,8 @@ class HexAgent extends Agent {
             let possiblePlays = getEmptyHex(board)
             for(let move of possiblePlays){
                 let updatedBoard = JSON.parse(JSON.stringify(board));
-                updatedBoard[move[0]][move[1]] = player ? "1" : "2"
-                let value = this.minmax(updatedBoard, false, deep - 1, alpha, beta, !player)
+                updatedBoard[move[0]][move[1]] = player
+                let value = this.minmax(updatedBoard, false, deep - 1, alpha, beta, player)
                 maxValue = max([value, maxValue])
                 alpha = max([alpha, value])
                 
@@ -165,8 +202,8 @@ class HexAgent extends Agent {
             let possiblePlays = getEmptyHex(board)
             for(let move of possiblePlays){
                 let updatedBoard = JSON.parse(JSON.stringify(board))
-                updatedBoard[move[0]][move[1]] = player ? "1" : "2"
-                let value = this.minmax(updatedBoard, true, deep - 1, alpha, beta, !player)
+                updatedBoard[move[0]][move[1]] = player
+                let value = this.minmax(updatedBoard, true, deep - 1, alpha, beta, player)
                 minValue = min([value, minValue])
                 beta = min([beta, value])
                 
@@ -179,15 +216,15 @@ class HexAgent extends Agent {
 
     }
 
-    getBestMovement(board){
+    getBestMovement(board, player){
         let possiblePlays = getEmptyHex(board)
         let bestCost = -9999999
         let bestMove = []
         for(let move of possiblePlays){
             console.log("Está calculando")
             let updatedBoard = JSON.parse(JSON.stringify(board))
-            updatedBoard[move[0]][move[1]] = "1"
-            let value = this.minmax(updatedBoard, false, 1, -Infinity, Infinity, true)
+            updatedBoard[move[0]][move[1]] = player
+            let value = this.minmax(updatedBoard, false, 1, -Infinity, Infinity, player)
             if(value >= bestCost){
                 bestCost = value
                 bestMove = move
