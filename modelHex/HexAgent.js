@@ -31,9 +31,9 @@ class HexAgent extends Agent {
 
         
         if(this.getID() === "2"){
-            return this.getBestMovement(board, "2")
+            return this.getBestMovement(board, "2").bestMove
         }else{
-            return this.getBestMovement(board, "1")
+            return this.getBestMovement(board, "1").bestMove
         }
         
 
@@ -231,7 +231,10 @@ class HexAgent extends Agent {
             }
         }
 
-        return bestMove
+        return {
+            bestMove,
+            bestCost
+        }
     }
 
     transformHeuristicValue(value){
