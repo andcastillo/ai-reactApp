@@ -19,6 +19,8 @@ class HexAgent extends Agent {
         let available = getEmptyHex(board);
         let nTurn = size * size - available.length;
 
+        //console.log(this.getShortestPath(board))
+
         if (nTurn == 0) { // First move
             console.log([Math.floor(size / 2), Math.floor(size / 2) - 1])
             return [Math.floor(size / 2), Math.floor(size / 2) - 1];
@@ -27,9 +29,11 @@ class HexAgent extends Agent {
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
 
+        
         if(this.getID() === "1"){
             return this.getBestMovement(board)
         }
+        
 
 
         let move = available[Math.round(Math.random() * (available.length - 1))];
@@ -94,17 +98,17 @@ class HexAgent extends Agent {
             let weight;
 
             if(neighborsNode[i].mark === "1"){
-                weight = 0.1;
+                weight = 1;
             }else if(neighborsNode[i].mark === "2"){
                 weight = Infinity;
             }else if(neighborsNode[i].isStartLeft || neighborsNode[i].isFinishRight){
-                weight = 0.1;
+                weight = 1;
             }
-            else {
-                weight = 1
+            else if(neighborsNode[i].mark === 0) {
+                weight = 10
             }
 
-            mapNeighbors[`${arrayName[0]}${arrayName[1]}`] = weight;
+            mapNeighbors[arrayName.toString()] = weight;
         }
 
         return mapNeighbors;
@@ -180,11 +184,11 @@ class HexAgent extends Agent {
         let bestCost = -9999999
         let bestMove = []
         for(let move of possiblePlays){
-            console.log("Se llamó minmax")
+            console.log("Está calculando")
             let updatedBoard = JSON.parse(JSON.stringify(board))
             updatedBoard[move[0]][move[1]] = "1"
-            let value = this.minmax(updatedBoard, true, 3, -Infinity, Infinity, true)
-            if(value > bestCost){
+            let value = this.minmax(updatedBoard, false, 1, -Infinity, Infinity, true)
+            if(value >= bestCost){
                 bestCost = value
                 bestMove = move
             }
@@ -233,11 +237,4 @@ class Hex {
         this.mark = value;
     }
 
-}
-
-class MinMaxNode {
-    constructor(path){
-        this.path = path
-        this.cost = cost
-    }
 }
