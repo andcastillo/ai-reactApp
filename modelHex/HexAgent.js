@@ -1,5 +1,5 @@
 const Agent = require('ai-agents').Agent;
-const { map } = require('lodash');
+const { max, min } = require('lodash');
 const Graph = require('node-dijkstra');
 
 class HexAgent extends Agent {
@@ -19,18 +19,8 @@ class HexAgent extends Agent {
         let available = getEmptyHex(board);
         let nTurn = size * size - available.length;
 
-        // let hex1 = new Hex(2,3)
-        // hex1.setMark("1")
-        // let hex2 = new Hex(3,2)
-        // hex2.setMark("2")
-        // let hex3 = new Hex(3,3)
-        // hex3.setMark("2")
-        // let hex4 = new Hex(3,4)
-        // hex4.setMark("0")
-
-        //console.log(this.createMap('2,2', [hex1, hex2, hex3, hex4]))
-
-        this.createGraph(board)
+        console.log(this.getShortestPath(board))
+        console.log("El mejor valor para max", this.minmax(board, true, 3, -999999, 999999, "1"))
 
         if (nTurn == 0) { // First move
             console.log([Math.floor(size / 2), Math.floor(size / 2) - 1])
@@ -92,7 +82,6 @@ class HexAgent extends Agent {
          }
 
          return neighborsFilter
-
     }
 
     createMap(neighborsNode){
@@ -119,7 +108,7 @@ class HexAgent extends Agent {
         return mapNeighbors;
     }
 
-    createGraph(board){
+    getShortestPath(board){
 
         const graph = new Graph();
 
@@ -139,8 +128,62 @@ class HexAgent extends Agent {
             }
         }
 
-        console.log(graph.path('-1,-1', '-2,-2', { cost: true }))
+        return graph.path('-1,-1', '-2,-2', { cost: true })
+    }
 
+    minmax(board, isMax, deep, alpha, beta, player){
+
+        if(deep === 0){
+            return this.transformHeuristicValue(this.getShortestPath(board).cost);
+        }
+
+        if(isMax){
+            let maxValue = -999999999
+            let possiblePlays = getEmptyHex(board)
+            for(let move of possiblePlays){
+                let node = {
+                    value: 0,
+                    move: move
+                }
+                let updatedBoard = JSON.parse(JSON.stringify(board));
+                updatedBoard[move[0]][move[1]] = player ? "1" : "2"
+                let value = this.minmax(updatedBoard, false, deep - 1, alpha, beta, !player)
+                maxValue = max([value, maxValue])
+                //console.log( "alpha",max([alpha, value]))
+                //console.log("beta",beta)
+                //console.log("valor",value)
+                alpha = max([alpha, value])
+                
+                if(alpha >= beta){
+                    console.log("Se podó max")
+                    break;
+                }
+                
+                
+            }
+            return maxValue
+        }else{
+            let minValue = 999999999
+            let possiblePlays = getEmptyHex(board)
+            for(let move of possiblePlays){
+                let updatedBoard = JSON.parse(JSON.stringify(board))
+                updatedBoard[move[0]][move[1]] = player ? "1" : "2"
+                let value = this.minmax(updatedBoard, true, deep - 1, alpha, beta, !player)
+                minValue = min([value, minValue])
+                beta = min([beta, value])
+                
+                if(alpha >= beta){
+                    console.log("Se podó min")
+                    break;
+                }
+            }
+            return minValue
+        }
+
+    }
+
+    transformHeuristicValue(value){
+        return value * -1
     }
 
 }
@@ -159,7 +202,7 @@ function getEmptyHex(board) {
     for (let k = 0; k < size; k++) {
         for (let j = 0; j < size; j++) {
             if (board[k][j] === 0) {
-                result.push(k * size + j);
+                result.push([k,j]);
             }
         }
     }
@@ -181,6 +224,9 @@ class Hex {
 
 }
 
-class TerminalHex {
-
+class MinMaxNode {
+    constructor(path){
+        this.path = path
+        this.cost = cost
+    }
 }
