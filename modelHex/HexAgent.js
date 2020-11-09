@@ -29,15 +29,6 @@ class HexAgent extends Agent {
             console.log([Math.floor(size / 2), Math.floor(size / 2)])
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
-
-        /*
-        if(this.getID() === "1"){
-            let result = this.minmax(board, true, 3, -Infinity, Infinity, "1", [])
-            console.log(result.cost)
-            console.log(result.movements)
-            return result.movements[0]
-        }
-        */
         
 
         
@@ -45,17 +36,14 @@ class HexAgent extends Agent {
             let movements = this.minmax(board, true, 3, -Infinity, Infinity, "1", []).movements
             return movements[0]
         }
-        /*
+        
         else{
             let movements = this.minmax(board, true, 3, -Infinity, Infinity, "2", []).movements
             console.log(movements)
             return movements[0]
         }
-        */
         
-
-        let move = available[Math.round(Math.random() * (available.length - 1))];
-        return [Math.floor(move / board.length), move % board.length];
+        
     }
 
 
