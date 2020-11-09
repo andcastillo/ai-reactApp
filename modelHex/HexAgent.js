@@ -29,17 +29,24 @@ class HexAgent extends Agent {
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
 
+        /*
+        if(this.getID() === "1"){
+            let result = this.minmax(board, true, 3, -Infinity, Infinity, "1", [])
+            console.log(result.cost)
+            console.log(result.movements)
+            return result.movements[0]
+        }
+        */
+
         
         if(this.getID() === "2"){
-            return this.getBestMovement(board, "2").bestMove
-        }else{
-            return this.getBestMovement(board, "1").bestMove
+            let movements = this.minmax(board, true, 4, -Infinity, Infinity, "2", []).movements
+            console.log(movements)
+            return movements[0]
         }
-        
 
-
-        //let move = available[Math.round(Math.random() * (available.length - 1))];
-        //return [Math.floor(move / board.length), move % board.length];
+        let move = available[Math.round(Math.random() * (available.length - 1))];
+        return [Math.floor(move / board.length), move % board.length];
     }
 
 
@@ -174,21 +181,42 @@ class HexAgent extends Agent {
         return graph.path('-1,-1', '-2,-2', { cost: true })
     }
 
-    minmax(board, isMax, deep, alpha, beta, player){
+    minmax(board, isMax, deep, alpha, beta, player, movements){
 
-        if(deep === 0){
-            return this.transformHeuristicValue(this.getShortestPath(board, player).cost);
+        console.log("S está ejecutando el minmax")
+
+        let shortestPath = this.transformHeuristicValue(this.getShortestPath(board, player).cost)
+
+
+        if(deep !==0 && shortestPath >= -((board.length - 1) + 2)){
+            console.log("Entró")
+            return { 
+                cost: 0,
+                movements: movements
+            }
         }
 
+        if(deep === 0 || getEmptyHex(board).length <= 0){
+            return { 
+                cost: shortestPath,
+                movements: movements
+            }
+        }
+
+        
         if(isMax){
             let maxValue = -999999999
+            let bestMovements = []
             let possiblePlays = getEmptyHex(board)
             for(let move of possiblePlays){
                 let updatedBoard = JSON.parse(JSON.stringify(board));
                 updatedBoard[move[0]][move[1]] = player
-                let value = this.minmax(updatedBoard, false, deep - 1, alpha, beta, player)
-                maxValue = max([value, maxValue])
-                alpha = max([alpha, value])
+                let value = this.minmax(updatedBoard, false, deep - 1, alpha, beta, player, [...movements,move, ])
+                if(value.cost > maxValue){
+                    maxValue = value.cost
+                    bestMovements = value.movements
+                }
+                alpha = max([alpha, value.cost])
                 
                 if(alpha >= beta){
                     break;
@@ -196,45 +224,34 @@ class HexAgent extends Agent {
                 
                 
             }
-            return maxValue
+            return {
+                cost: maxValue,
+                movements: bestMovements
+            }
         }else{
             let minValue = 999999999
+            let bestMovements = []
             let possiblePlays = getEmptyHex(board)
             for(let move of possiblePlays){
                 let updatedBoard = JSON.parse(JSON.stringify(board))
                 updatedBoard[move[0]][move[1]] = player
-                let value = this.minmax(updatedBoard, true, deep - 1, alpha, beta, player)
-                minValue = min([value, minValue])
-                beta = min([beta, value])
+                let value = this.minmax(updatedBoard, true, deep - 1, alpha, beta, player, [...movements, move])
+                if(value.cost < minValue){
+                    minValue = value.cost
+                    bestMovements = value.movements
+                }
+                beta = min([beta, value.cost])
                 
                 if(alpha >= beta){
                     break;
                 }
             }
-            return minValue
-        }
-
-    }
-
-    getBestMovement(board, player){
-        let possiblePlays = getEmptyHex(board)
-        let bestCost = -9999999
-        let bestMove = []
-        for(let move of possiblePlays){
-            console.log("Está calculando")
-            let updatedBoard = JSON.parse(JSON.stringify(board))
-            updatedBoard[move[0]][move[1]] = player
-            let value = this.minmax(updatedBoard, false, 1, -Infinity, Infinity, player)
-            if(value >= bestCost){
-                bestCost = value
-                bestMove = move
+            return {
+                cost: minValue,
+                movements: bestMovements
             }
         }
 
-        return {
-            bestMove,
-            bestCost
-        }
     }
 
     transformHeuristicValue(value){
