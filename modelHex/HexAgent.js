@@ -37,6 +37,7 @@ class HexAgent extends Agent {
             return result.movements[0]
         }
         */
+        
 
         
         if(this.getID() === "1"){
@@ -44,6 +45,12 @@ class HexAgent extends Agent {
             console.log(movements)
             return movements[0]
         }
+        /*else{
+            let movements = this.minmax(board, true, 3, -Infinity, Infinity, "2", []).movements
+            console.log(movements)
+            return movements[0]
+        }
+        */
 
         let move = available[Math.round(Math.random() * (available.length - 1))];
         return [Math.floor(move / board.length), move % board.length];
@@ -187,14 +194,6 @@ class HexAgent extends Agent {
 
         let shortestPath = this.transformHeuristicValue(this.getShortestPath(board, player).cost)
 
-
-        if(deep !==0 && shortestPath >= -((board.length - 1) + 2)){
-            console.log("Entró")
-            return { 
-                cost: 0,
-                movements: movements
-            }
-        }
 
         if(deep === 0 || getEmptyHex(board).length <= 0){
             return { 
