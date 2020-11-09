@@ -1,6 +1,7 @@
 const Agent = require('ai-agents').Agent;
 const { max, min } = require('lodash');
 const Graph = require('node-dijkstra');
+const goalTest = require('./goalTest');
 
 class HexAgent extends Agent {
     constructor(value) {
@@ -45,12 +46,14 @@ class HexAgent extends Agent {
             console.log(movements)
             return movements[0]
         }
-        /*else{
+        /*
+        else{
             let movements = this.minmax(board, true, 3, -Infinity, Infinity, "2", []).movements
             console.log(movements)
             return movements[0]
         }
         */
+        
 
         let move = available[Math.round(Math.random() * (available.length - 1))];
         return [Math.floor(move / board.length), move % board.length];
@@ -194,6 +197,12 @@ class HexAgent extends Agent {
 
         let shortestPath = this.transformHeuristicValue(this.getShortestPath(board, player).cost)
 
+        if(deep !== 0  && goalTest(board)){
+            return {
+                cost: 0,
+                movements
+            }
+        }
 
         if(deep === 0 || getEmptyHex(board).length <= 0){
             return { 
@@ -210,6 +219,7 @@ class HexAgent extends Agent {
             for(let move of possiblePlays){
                 let updatedBoard = JSON.parse(JSON.stringify(board));
                 updatedBoard[move[0]][move[1]] = player
+                console.log(updatedBoard)
                 let value = this.minmax(updatedBoard, false, deep - 1, alpha, beta, player, [...movements,move, ])
                 if(value.cost > maxValue){
                     maxValue = value.cost
@@ -234,6 +244,7 @@ class HexAgent extends Agent {
             for(let move of possiblePlays){
                 let updatedBoard = JSON.parse(JSON.stringify(board))
                 updatedBoard[move[0]][move[1]] = this.getRivalId(player)
+                console.log(updatedBoard)
                 let value = this.minmax(updatedBoard, true, deep - 1, alpha, beta, player, [...movements, move])
                 if(value.cost < minValue){
                     minValue = value.cost
