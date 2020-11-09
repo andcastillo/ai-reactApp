@@ -39,8 +39,8 @@ class HexAgent extends Agent {
         */
 
         
-        if(this.getID() === "2"){
-            let movements = this.minmax(board, true, 4, -Infinity, Infinity, "2", []).movements
+        if(this.getID() === "1"){
+            let movements = this.minmax(board, true, 3, -Infinity, Infinity, "1", []).movements
             console.log(movements)
             return movements[0]
         }
@@ -234,7 +234,7 @@ class HexAgent extends Agent {
             let possiblePlays = getEmptyHex(board)
             for(let move of possiblePlays){
                 let updatedBoard = JSON.parse(JSON.stringify(board))
-                updatedBoard[move[0]][move[1]] = player
+                updatedBoard[move[0]][move[1]] = this.getRivalId(player)
                 let value = this.minmax(updatedBoard, true, deep - 1, alpha, beta, player, [...movements, move])
                 if(value.cost < minValue){
                     minValue = value.cost
@@ -252,6 +252,11 @@ class HexAgent extends Agent {
             }
         }
 
+    }
+
+    getRivalId(id){
+        if(id === "1") return "2"
+        else return "1"
     }
 
     transformHeuristicValue(value){
