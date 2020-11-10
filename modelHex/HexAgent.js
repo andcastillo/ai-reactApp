@@ -20,7 +20,6 @@ class HexAgent extends Agent {
         let available = getEmptyHex(board);
         let nTurn = size * size - available.length;
 
-        //console.log(this.getShortestPath(board))
 
         if (nTurn == 0) { // First move
             console.log([Math.floor(size / 2), Math.floor(size / 2) - 1])
@@ -35,9 +34,7 @@ class HexAgent extends Agent {
         if(this.getID() === "1"){
             let movements = this.minmax(board, true, 3, -Infinity, Infinity, "1", []).movements
             return movements[0]
-        }
-        
-        else{
+        }else{
             let movements = this.minmax(board, true, 3, -Infinity, Infinity, "2", []).movements
             console.log(movements)
             return movements[0]
